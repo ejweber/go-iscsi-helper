@@ -57,11 +57,16 @@ func UpdateIscsiDeviceAbortTimeout(target string, timeout int64, nsexec *lhns.Ex
 	return err
 }
 
+// Longhorn expects to use the default iface and calls DiscoverTarget with iface=default. In most environments this is
+// the default behavior anyway, but if there is some other iface configured (with iscsiadm -m iface), iSCSI may choose
+// to use it instead.
+// https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/7/html/storage_administration_guide/iscsi-offload-config#iface-binding-unbinding-to-portal
 func DiscoverTarget(ip, target string, nsexec *lhns.Executor) error {
 	opts := []string{
 		"-m", "discovery",
 		"-t", "sendtargets",
 		"-p", ip,
+		"-I", "default",
 	}
 	output, err := nsexec.Execute(nil, iscsiBinary, opts, lhtypes.ExecuteDefaultTimeout)
 	if err != nil {
